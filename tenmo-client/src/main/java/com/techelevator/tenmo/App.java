@@ -2,12 +2,16 @@ package com.techelevator.tenmo;
 
 import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.AuthenticatedUser;
+import com.techelevator.tenmo.model.User;
 import com.techelevator.tenmo.model.UserCredentials;
-import com.techelevator.tenmo.services.AccountService;
-import com.techelevator.tenmo.services.AuthenticationService;
-import com.techelevator.tenmo.services.ConsoleService;
+import com.techelevator.tenmo.services.*;
+import com.techelevator.tenmo.model.Transfer;
+
+import java.math.BigDecimal;
+import java.util.Scanner;
 
 public class App {
+    private final Scanner in;
 
     private static final String API_BASE_URL = "http://localhost:8080/";
 
@@ -16,6 +20,12 @@ public class App {
 
     private AuthenticatedUser currentUser;
     private final AccountService accountService = new AccountService();
+    private final UserService tenmo_userService = new UserService();
+    private final TransferService transferService = new TransferService();
+
+    public App() {
+        this.in = new Scanner(System.in);
+    }
 
     public static void main(String[] args) {
         App app = new App();
@@ -87,32 +97,56 @@ public class App {
         }
     }
 
-	private void viewCurrentBalance() {
-		// TODO Auto-generated method stub
+
+
+    private void viewCurrentBalance() {
+        // TODO Auto-generated method stub
+        int userId= currentUser.getUser().getId() ;
+        //accountService.setAuthToken(currentUser.getToken());
+        Account account = accountService.getAccountByUserId(userId);
+        //Account account = accountService.getAccountByUserId_secure(userId);
+        System.out.println("Your current balance is: $" + account.getBalance() );
+
+    }
+
+    private void viewTransferHistory() {
+        // TODO Auto-generated method stub
+    }
+
+    private void viewPendingRequests() {
+        // TODO Auto-generated method stub
+
+    }
+
+    private void sendBucks() {
+        // TODO Auto-generated method stub
+        User[] users = tenmo_userService.listUsers();
+        consoleService.printUsers(users);
+        System.out.println("Enter ID of user you are sending to (0 to cancel): ");
+        int recipientID = Integer.parseInt(in.nextLine());
+        System.out.println("Enter amount: ");
+        String input = in.nextLine();
+        BigDecimal amount = new BigDecimal(input);
+
         int userId= currentUser.getUser().getId() ;
         Account account = accountService.getAccountByUserId(userId);
-        System.out.println("Your current balance is: $" + account.getBalance() );
-		
-	}
+        if(recipientID != userId && amount.compareTo(account.getBalance()) <= 0 && amount.compareTo(BigDecimal.ZERO) > 0){
+            Transfer transfer = new Transfer();
+            transfer.setAccount_to(recipientID);
+            transfer.setAccount_from(userId);
+            transfer.setAmount(amount);
+            transfer.setTransfer_status_id(2);
+            transferService.sendMoney(transfer);
+            System.out.println("Your transfer has been approved");
+        }else{
+            System.out.println("****Please Try Again****");
+        }
+    }
 
-	private void viewTransferHistory() {
-		// TODO Auto-generated method stub
-		
-	}
 
-	private void viewPendingRequests() {
-		// TODO Auto-generated method stub
-		
-	}
+    private void requestBucks() {
+        // TODO Auto-generated method stub
 
-	private void sendBucks() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private void requestBucks() {
-		// TODO Auto-generated method stub
-		
-	}
+    }
 
 }
