@@ -111,6 +111,17 @@ public class App {
 
     private void viewTransferHistory() {
         // TODO Auto-generated method stub
+        int userId = currentUser.getUser().getId();
+        Transfer[] transfer = transferService.viewTransferHistory(userId);
+        consoleService.printTransfers(transfer);
+        System.out.println("Please enter transfer ID to view details (0 to cancel): ");
+        int transferID = Integer.parseInt(in.nextLine());
+        if (transferID == 0) {
+            System.out.println("Transaction canceled.");
+        }else{
+            Transfer transfer1 = transferService.viewTransferDetails(transferID);
+            consoleService.printTransferDetails(transfer1);
+        }
     }
 
     private void viewPendingRequests() {
@@ -124,22 +135,27 @@ public class App {
         consoleService.printUsers(users);
         System.out.println("Enter ID of user you are sending to (0 to cancel): ");
         int recipientID = Integer.parseInt(in.nextLine());
-        System.out.println("Enter amount: ");
-        String input = in.nextLine();
-        BigDecimal amount = new BigDecimal(input);
+        if (recipientID == 0) {// REMEMBER TO TELL WE FORGOT THIS
+            System.out.println("Transaction canceled.");
+        }else {
+            System.out.println("Enter amount: ");
+            String input = in.nextLine();
+            BigDecimal amount = new BigDecimal(input);
 
-        int userId= currentUser.getUser().getId() ;
-        Account account = accountService.getAccountByUserId(userId);
-        if(recipientID != userId && amount.compareTo(account.getBalance()) <= 0 && amount.compareTo(BigDecimal.ZERO) > 0){
-            Transfer transfer = new Transfer();
-            transfer.setAccount_to(recipientID);
-            transfer.setAccount_from(userId);
-            transfer.setAmount(amount);
-            transfer.setTransfer_status_id(2);
-            transferService.sendMoney(transfer);
-            System.out.println("Your transfer has been approved");
-        }else{
-            System.out.println("****Please Try Again****");
+            int userId = currentUser.getUser().getId();
+            Account account = accountService.getAccountByUserId(userId);
+
+            if (recipientID != userId && amount.compareTo(account.getBalance()) <= 0 && amount.compareTo(BigDecimal.ZERO) > 0) {
+                Transfer transfer = new Transfer();
+                transfer.setAccount_to(recipientID);
+                transfer.setAccount_from(userId);
+                transfer.setAmount(amount);
+                transfer.setTransfer_status_id(2);
+                transferService.sendMoney(transfer);
+                System.out.println("Your transfer has been approved");
+            } else {
+                System.out.println("****Please Try Again****");
+            }
         }
     }
 

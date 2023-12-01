@@ -1,6 +1,7 @@
 package com.techelevator.tenmo.controller;
 import com.techelevator.tenmo.dao.AccountDao;
 import com.techelevator.tenmo.dao.TransferDao;
+import com.techelevator.tenmo.dao.UserDao;
 import com.techelevator.tenmo.exception.DaoException;
 import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Transfer;
@@ -34,15 +35,15 @@ public class TransferController {
         }
     }
 
-    @RequestMapping(path = "/transfer/{transfer_id}", method = RequestMethod.GET)
-    public Transfer getTransferById(@PathVariable int transfer_id) {
-        Transfer transfer = transferDao.getTransferById(transfer_id);
-        return transfer;
-    }
+//    @RequestMapping(path = "/transfer/{transfer_id}", method = RequestMethod.GET)
+//    public Transfer getTransferById(@PathVariable int transfer_id) {
+//        Transfer transfer = transferDao.getTransferById(transfer_id);
+//        return transfer;
+//    }
 
 
 
-    @RequestMapping(path = "/transfer/sendMoney/{accountTo}/{accountFrom}/{amount}", method = RequestMethod.PUT)
+    @RequestMapping(path = "/transfers/sendMoney/{accountTo}/{accountFrom}/{amount}", method = RequestMethod.PUT)
     public Transfer sendMoney(
             @Valid @RequestBody Transfer transfer,
             @PathVariable int accountTo,
@@ -50,10 +51,10 @@ public class TransferController {
             @PathVariable BigDecimal amount) {
         int accountToId = accountDao.getAccountIdByUserId(accountTo);
         int accountFromId = accountDao.getAccountIdByUserId(accountFrom);
+
         transfer.setAccount_to(accountToId);
         transfer.setAccount_from(accountFromId);
         transfer.setAmount(amount);
-
         transfer.setTransfer_id(0);
         transfer.setTransfer_type_id(2);
         transfer.setTransfer_status_id(2);
@@ -66,13 +67,22 @@ public class TransferController {
         }
     }
 
-    @RequestMapping(path = "/transfers", method = RequestMethod.GET)
-    public List<Transfer> list(@RequestParam(defaultValue = "0") int transfer_id,
-                               @RequestParam(defaultValue = "0") int accountFrom,
-                               @RequestParam(defaultValue = "0") int accountTo,
-                               @RequestParam(defaultValue = "0") BigDecimal amount) {
-        return transferDao.viewTransferHistory();
+    @RequestMapping(path = "/transfers/{userId}", method = RequestMethod.GET)
+    public List<Transfer> list( @PathVariable int userId){
+//            @RequestParam(defaultValue = "0") int transfer_id,
+//            @RequestParam(defaultValue = "0") int accountFrom,
+//           @RequestParam(defaultValue = "0") int accountTo,
+//            @RequestParam(defaultValue = "") String username,
+//            @RequestParam(defaultValue = "0") BigDecimal amount
+        // int accountsId = accountDao.getAccountIdByUserId(userId);
 
+        return transferDao.viewTransferHistory(userId);
 
     }
+    @RequestMapping(path = "/transfers/viewDetails/{transferId}", method = RequestMethod.GET)
+    public Transfer viewTransferDetails(@PathVariable int transferId){
+        return transferDao.viewTransferDetails(transferId);
+    }
+
+
 }

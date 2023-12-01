@@ -1,4 +1,5 @@
 package com.techelevator.tenmo.dao;
+
 import com.techelevator.tenmo.exception.DaoException;
 import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
@@ -54,14 +55,31 @@ public class JdbcTransferDao implements TransferDao {
                 "COMMIT;";
         jdbcTemplate.update(sendMoneySql, amount, accountFrom, amount, accountTo, accountFrom, accountTo, amount);
     }
+
     @Override
-    public List<Transfer> viewTransferHistory(){
+    public List<Transfer> viewTransferHistory(int userId) {
         List<Transfer> transfers = new ArrayList<>();
-        String Sql =
-                "SELECT transfer_id, account_from, account_to, amount " +
-                        "FROM transfer " ;
-        try{
-            SqlRowSet results = jdbcTemplate.queryForRowSet(Sql);
+//        String sql = "SELECT t.transfer_id, tu.username, t.transfer_type_id,t.transfer_status_id, t.account_from, t.account_to, t.amount " +
+//                "FROM transfer t " +
+//                "JOIN account a ON a.account_id =t.account_from " +
+//                "JOIN tenmo_user tu ON tu.user_id = a.user_id " +
+//                "WHERE account_to = ? OR account_from = ?;";
+        String sql = "SELECT t.transfer_id, " +
+                "CASE " +
+                "WHEN a_from.user_id = ? THEN 'To: ' || tu_to.username " +
+                "ELSE 'From: ' || tu_from.username " +
+                "END AS username, " +
+                "t.amount, t.transfer_type_id, t.transfer_status_id, t.account_from, t.account_to " +
+                "FROM transfer t " +
+                "JOIN account a_from ON a_from.account_id = t.account_from " +
+                "JOIN tenmo_user tu_from ON tu_from.user_id = a_from.user_id " +
+                "JOIN account a_to ON a_to.account_id = t.account_to " +
+                "JOIN tenmo_user tu_to ON tu_to.user_id = a_to.user_id " +
+                "WHERE a_from.user_id = ? OR a_to.user_id = ?";
+
+
+        try {
+            SqlRowSet results = jdbcTemplate.queryForRowSet(sql, userId, userId, userId);
             while (results.next()) {
                 Transfer transfer = mapRowToTransfer(results);
                 transfers.add(transfer);
@@ -69,18 +87,65 @@ public class JdbcTransferDao implements TransferDao {
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException("Unable to connect to server or database", e);
         }
+
         return transfers;
     }
+
+    public Transfer viewTransferDetails(int transferId) {
+        Transfer transfer = null;
+        String sql = "SELECT t.transfer_id,t.transfer_type_id, tt.transfer_type_desc, t.transfer_status_id, "+
+                "ts.transfer_status_desc, t.account_from, tu_from.username AS from_username,t.account_to, tu_to.username AS to_username, t.amount " +
+                "FROM transfer t " +
+                "JOIN transfer_type tt ON tt.transfer_type_id = t.transfer_type_id " +
+                "JOIN transfer_status ts ON ts.transfer_status_id = t.transfer_status_id " +
+                "JOIN account a_from ON t.account_from = a_from.account_id " +
+                "JOIN tenmo_user tu_from ON a_from.user_id = tu_from.user_id " +
+                "JOIN account a_to ON a_to.account_id = t.account_to " +
+                "JOIN tenmo_user tu_to ON tu_to.user_id = a_to.user_id " +
+                "WHERE t.transfer_id = ?; ";
+        try {
+            SqlRowSet results = jdbcTemplate.queryForRowSet(sql, transferId);
+            if (results.next()) {
+                transfer = mapRowToTransfer2(results);
+            }
+        } catch (CannotGetJdbcConnectionException e) {
+            throw new DaoException("Unable to connect to server or database", e);
+        }
+        return transfer;
+    }
+
 
     private Transfer mapRowToTransfer(SqlRowSet rs) {
         Transfer transfer = new Transfer();
         transfer.setTransfer_id(rs.getInt("transfer_id"));
+        transfer.setAmount(rs.getBigDecimal("amount"));
         transfer.setTransfer_type_id(rs.getInt("transfer_type_id"));
         transfer.setTransfer_status_id(rs.getInt("transfer_status_id"));
         transfer.setAccount_from(rs.getInt("account_from"));
         transfer.setAccount_to(rs.getInt("account_to"));
-        transfer.setAmount(rs.getBigDecimal("amount"));
+        transfer.setUsername(rs.getString("username"));
+//        transfer.setTransfer_type_desc(rs.getString("transfer_type_desc"));
+//        transfer.setTransfer_status_desc(rs.getString("transfer_status_desc"));
+//        transfer.setFrom_username(rs.getString("from_username"));
+//        transfer.setTo_username(rs.getString("to_username"));
 
         return transfer;
     }
+
+    private Transfer mapRowToTransfer2(SqlRowSet rs) {
+        Transfer transfer = new Transfer();
+        transfer.setTransfer_id(rs.getInt("transfer_id"));
+        transfer.setTransfer_type_desc(rs.getString("transfer_type_desc"));
+        transfer.setTransfer_status_desc(rs.getString("transfer_status_desc"));
+        transfer.setFrom_username(rs.getString("from_username"));
+        transfer.setTo_username(rs.getString("to_username"));
+        transfer.setAmount(rs.getBigDecimal("amount"));
+        transfer.setTransfer_type_id(rs.getInt("transfer_type_id"));
+        transfer.setTransfer_status_id(rs.getInt("transfer_status_id"));
+        transfer.setAccount_from(rs.getInt("account_from"));
+        transfer.setAccount_to(rs.getInt("account_to"));
+
+        return transfer;
+    }
+
 }
