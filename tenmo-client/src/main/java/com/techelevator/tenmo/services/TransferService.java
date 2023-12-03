@@ -15,13 +15,17 @@ import com.techelevator.tenmo.model.AuthenticatedUser;
 import com.techelevator.tenmo.model.UserCredentials;
 
 import java.math.BigDecimal;
-
 public class TransferService {
 
     public String API_BASE_URL = "http://localhost:8080/transfers";
 
     private final RestTemplate restTemplate = new RestTemplate();
     private AuthenticatedUser currentUser;
+    private String authToken = null;
+
+    public void setAuthToken(String authToken) {
+        this.authToken = authToken;
+    }
 
     public Transfer getTransferById(int transfer_id) {
         Transfer transfer = null;
@@ -47,8 +51,12 @@ public class TransferService {
 
     public Transfer[] viewTransferHistory(int userId) {
         Transfer[] transfers = null;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(authToken);
+        HttpEntity entity = new HttpEntity(headers);
         try {
-            transfers = restTemplate.getForObject(API_BASE_URL + "/" + userId, Transfer[].class);
+            transfers = restTemplate.exchange(API_BASE_URL + "/" + userId, HttpMethod.GET,
+                    entity, Transfer[].class).getBody();
         } catch (RestClientResponseException | ResourceAccessException e) {
             BasicLogger.log(e.getMessage());
         }
@@ -57,7 +65,11 @@ public class TransferService {
 
     public Transfer viewTransferDetails(int transferId){
         Transfer transfer = null;
-        transfer = restTemplate.getForObject(API_BASE_URL + "/viewDetails/" + transferId, Transfer.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(authToken);
+        HttpEntity entity = new HttpEntity(headers);
+        transfer = restTemplate.exchange(API_BASE_URL + "/viewDetails/" + transferId, HttpMethod.GET,
+                entity,Transfer.class).getBody();
 
         return transfer;
     }

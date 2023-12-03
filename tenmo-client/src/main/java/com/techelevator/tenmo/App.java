@@ -102,9 +102,9 @@ public class App {
     private void viewCurrentBalance() {
         // TODO Auto-generated method stub
         int userId= currentUser.getUser().getId() ;
-        //accountService.setAuthToken(currentUser.getToken());
-        Account account = accountService.getAccountByUserId(userId);
-        //Account account = accountService.getAccountByUserId_secure(userId);
+        accountService.setAuthToken(currentUser.getToken());
+        //Account account = accountService.getAccountByUserId(userId);
+        Account account = accountService.getAccountByUserId_secure(userId); //Caro added on Sun 12/3
         System.out.println("Your current balance is: $" + account.getBalance() );
 
     }
@@ -112,6 +112,7 @@ public class App {
     private void viewTransferHistory() {
         // TODO Auto-generated method stub
         int userId = currentUser.getUser().getId();
+        transferService.setAuthToken(currentUser.getToken());
         Transfer[] transfer = transferService.viewTransferHistory(userId);
         consoleService.printTransfers(transfer);
         System.out.println("Please enter transfer ID to view details (0 to cancel): ");
@@ -142,8 +143,10 @@ public class App {
             String input = in.nextLine();
             BigDecimal amount = new BigDecimal(input);
 
+            //Caro added authentication to sendBucks Sun 12/3
             int userId = currentUser.getUser().getId();
-            Account account = accountService.getAccountByUserId(userId);
+            accountService.setAuthToken(currentUser.getToken());
+            Account account = accountService.getAccountByUserId_secure(userId);
 
             if (recipientID != userId && amount.compareTo(account.getBalance()) <= 0 && amount.compareTo(BigDecimal.ZERO) > 0) {
                 Transfer transfer = new Transfer();
