@@ -53,12 +53,12 @@ public class AccountService {
                 entity, Account.class).getBody();
         return account;
     }
-    public Account getAccountByUserId(int userId) {
-
-        Account account = null;
-        account = restTemplate.getForObject(API_BASE_URL + "/" + userId, Account.class);
-        return account;
-
-    }
+//    public Account getAccountByUserId(int userId) {
+//
+//        Account account = null;
+//        account = restTemplate.getForObject(API_BASE_URL + "/" + userId, Account.class);
+//        return account;
+//
+//    }
 }
 

@@ -36,12 +36,12 @@ public class TransferService {
 
     public boolean sendMoney(Transfer transfer) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(authToken);
         HttpEntity<Transfer> entity = new HttpEntity<>(transfer, headers);
 
         boolean success = false;
         try {
-            restTemplate.put(API_BASE_URL + "/sendMoney/" + transfer.getAccount_to() + "/" + transfer.getAccount_from() + "/" + transfer.getAmount(), entity);
+            restTemplate.exchange(API_BASE_URL + "/sendMoney/" + transfer.getAccount_to() + "/" + transfer.getAccount_from() + "/" + transfer.getAmount(),HttpMethod.PUT, entity, Transfer.class).getBody();
             success = true;
         } catch (RestClientResponseException | ResourceAccessException e) {
             BasicLogger.log(e.getMessage());

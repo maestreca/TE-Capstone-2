@@ -75,7 +75,8 @@ public class JdbcTransferDao implements TransferDao {
                 "JOIN tenmo_user tu_from ON tu_from.user_id = a_from.user_id " +
                 "JOIN account a_to ON a_to.account_id = t.account_to " +
                 "JOIN tenmo_user tu_to ON tu_to.user_id = a_to.user_id " +
-                "WHERE a_from.user_id = ? OR a_to.user_id = ?";
+                "WHERE a_from.user_id = ? OR a_to.user_id = ? " +
+                "ORDER BY t.transfer_id;";
 
 
         try {

@@ -133,6 +133,7 @@ public class App {
     private void sendBucks() {
         // TODO Auto-generated method stub
         User[] users = tenmo_userService.listUsers();
+        transferService.setAuthToken(currentUser.getToken());
         consoleService.printUsers(users);
         System.out.println("Enter ID of user you are sending to (0 to cancel): ");
         int recipientID = Integer.parseInt(in.nextLine());
